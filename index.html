@@ -1,87 +1,279 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Telegram Mini App Test</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- REQUIRED -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<style>
-    body {
-        margin: 0;
-        padding: 16px;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont;
-        background: #111;
-        color: #fff;
-    }
-    .ok { color: #3cff88; }
-    .bad { color: #ff6b6b; }
-    pre {
-        background: #000;
-        padding: 12px;
-        border-radius: 8px;
-        overflow-x: auto;
-        font-size: 12px;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App Demo</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
+        }
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .status.in-telegram {
+            background: #4CAF50;
+            color: white;
+        }
+        .status.not-telegram {
+            background: #f44336;
+            color: white;
+        }
+        .section {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .section h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--tg-theme-text-color, #000);
+        }
+        .info-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--tg-theme-hint-color, #ccc);
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: var(--tg-theme-hint-color, #666);
+            font-size: 14px;
+        }
+        .value {
+            margin-top: 3px;
+            font-size: 15px;
+        }
+        button {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            margin: 5px;
+            width: calc(100% - 10px);
+        }
+        button:active {
+            opacity: 0.8;
+        }
+        .color-demo {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .color-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .color-label {
+            font-size: 11px;
+            text-align: center;
+            margin-top: 5px;
+        }
+    </style>
 </head>
-
 <body>
+    <div id="app">
+        <div id="status"></div>
+        <div id="content"></div>
+    </div>
 
-<h2>Telegram Mini App Status</h2>
-<div id="status"></div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        const statusDiv = document.getElementById('status');
+        const contentDiv = document.getElementById('content');
 
-<h3>WebApp object</h3>
-<pre id="dump"></pre>
+        function checkTelegram() {
+            if (tg && tg.initData) {
+                statusDiv.className = 'status in-telegram';
+                statusDiv.textContent = '✓ Running inside Telegram Mini App';
+                showcaseFeatures();
+            } else {
+                statusDiv.className = 'status not-telegram';
+                statusDiv.textContent = '✗ Not running in Telegram Mini App';
+                contentDiv.innerHTML = '<div class="section"><p>Open this page inside Telegram to see the features!</p></div>';
+            }
+        }
 
-<h3>initDataUnsafe</h3>
-<pre id="init"></pre>
+        function showcaseFeatures() {
+            tg.expand();
+            tg.ready();
 
-<script>
-(function () {
-    const status = document.getElementById("status");
-    const dump = document.getElementById("dump");
-    const init = document.getElementById("init");
+            let html = '';
 
-    if (!window.Telegram || !Telegram.WebApp) {
-        status.innerHTML = '<span class="bad">Telegram WebApp NOT detected</span>';
-        return;
-    }
+            // User Information
+            html += '<div class="section"><h2>👤 User Information</h2>';
+            html += `<div class="info-item"><div class="label">ID</div><div class="value">${tg.initDataUnsafe.user?.id || 'N/A'}</div></div>`;
+            html += `<div class="info-item"><div class="label">First Name</div><div class="value">${tg.initDataUnsafe.user?.first_name || 'N/A'}</div></div>`;
+            html += `<div class="info-item"><div class="label">Last Name</div><div class="value">${tg.initDataUnsafe.user?.last_name || 'N/A'}</div></div>`;
+            html += `<div class="info-item"><div class="label">Username</div><div class="value">${tg.initDataUnsafe.user?.username || 'N/A'}</div></div>`;
+            html += `<div class="info-item"><div class="label">Language</div><div class="value">${tg.initDataUnsafe.user?.language_code || 'N/A'}</div></div>`;
+            html += `<div class="info-item"><div class="label">Is Premium</div><div class="value">${tg.initDataUnsafe.user?.is_premium ? 'Yes' : 'No'}</div></div>`;
+            html += '</div>';
 
-    const tg = Telegram.WebApp;
+            // Platform Information
+            html += '<div class="section"><h2>📱 Platform Information</h2>';
+            html += `<div class="info-item"><div class="label">Platform</div><div class="value">${tg.platform}</div></div>`;
+            html += `<div class="info-item"><div class="label">Version</div><div class="value">${tg.version}</div></div>`;
+            html += `<div class="info-item"><div class="label">Color Scheme</div><div class="value">${tg.colorScheme}</div></div>`;
+            html += `<div class="info-item"><div class="label">Viewport Height</div><div class="value">${tg.viewportHeight}px</div></div>`;
+            html += `<div class="info-item"><div class="label">Viewport Stable Height</div><div class="value">${tg.viewportStableHeight}px</div></div>`;
+            html += `<div class="info-item"><div class="label">Is Expanded</div><div class="value">${tg.isExpanded ? 'Yes' : 'No'}</div></div>`;
+            html += '</div>';
 
-    // VERY IMPORTANT
-    tg.ready();
+            // Theme Colors
+            html += '<div class="section"><h2>🎨 Theme Colors</h2>';
+            html += '<div class="color-demo">';
+            const colors = {
+                'BG': tg.themeParams.bg_color,
+                'Text': tg.themeParams.text_color,
+                'Hint': tg.themeParams.hint_color,
+                'Link': tg.themeParams.link_color,
+                'Button': tg.themeParams.button_color,
+                'Button Text': tg.themeParams.button_text_color
+            };
+            for (let [name, color] of Object.entries(colors)) {
+                if (color) {
+                    html += `<div><div class="color-box" style="background-color: ${color}"></div><div class="color-label">${name}</div></div>`;
+                }
+            }
+            html += '</div></div>';
 
-    status.innerHTML = `
-        <div class="ok">Telegram WebApp detected</div>
-        <div>Platform: ${tg.platform}</div>
-        <div>Version: ${tg.version}</div>
-        <div>Color scheme: ${tg.colorScheme}</div>
-        <div>Is expanded: ${tg.isExpanded}</div>
-    `;
+            // Interactive Features
+            html += '<div class="section"><h2>🎮 Interactive Features</h2>';
+            html += '<button onclick="showMainButton()">Show Main Button</button>';
+            html += '<button onclick="hideMainButton()">Hide Main Button</button>';
+            html += '<button onclick="hapticImpact()">Haptic Impact</button>';
+            html += '<button onclick="hapticNotification()">Haptic Notification</button>';
+            html += '<button onclick="showAlert()">Show Alert</button>';
+            html += '<button onclick="showConfirm()">Show Confirm</button>';
+            html += '<button onclick="showPopup()">Show Popup</button>';
+            html += '<button onclick="requestContact()">Request Contact</button>';
+            html += '<button onclick="openLink()">Open External Link</button>';
+            html += '<button onclick="openTelegramLink()">Open Telegram Link</button>';
+            html += '<button onclick="shareToStory()">Share to Story</button>';
+            html += '<button onclick="toggleClosingConfirmation()">Toggle Closing Confirmation</button>';
+            html += '</div>';
 
-    dump.textContent = JSON.stringify({
-        platform: tg.platform,
-        version: tg.version,
-        colorScheme: tg.colorScheme,
-        isExpanded: tg.isExpanded,
-        viewportHeight: tg.viewportHeight,
-        viewportStableHeight: tg.viewportStableHeight,
-        themeParams: tg.themeParams
-    }, null, 2);
+            // Back Button
+            html += '<div class="section"><h2>⬅️ Back Button</h2>';
+            html += '<button onclick="showBackButton()">Show Back Button</button>';
+            html += '<button onclick="hideBackButton()">Hide Back Button</button>';
+            html += '</div>';
 
-    init.textContent = JSON.stringify(tg.initDataUnsafe, null, 2);
+            contentDiv.innerHTML = html;
 
-    // INLINE MODE PROOF
-    tg.sendData(JSON.stringify({
-        source: "inline",
-        ts: Date.now()
-    }));
-})();
-</script>
+            // Setup Main Button click handler
+            tg.MainButton.onClick(() => {
+                tg.showAlert('Main Button clicked!');
+            });
 
+            // Setup Back Button click handler
+            tg.BackButton.onClick(() => {
+                tg.showAlert('Back Button clicked!');
+            });
+        }
+
+        // Interactive Functions
+        function showMainButton() {
+            tg.MainButton.text = 'Click Me!';
+            tg.MainButton.show();
+        }
+
+        function hideMainButton() {
+            tg.MainButton.hide();
+        }
+
+        function hapticImpact() {
+            tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function hapticNotification() {
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        function showAlert() {
+            tg.showAlert('This is an alert message!');
+        }
+
+        function showConfirm() {
+            tg.showConfirm('Do you want to continue?', (confirmed) => {
+                tg.showAlert(confirmed ? 'You clicked OK' : 'You clicked Cancel');
+            });
+        }
+
+        function showPopup() {
+            tg.showPopup({
+                title: 'Custom Popup',
+                message: 'This is a custom popup with buttons',
+                buttons: [
+                    {id: 'btn1', type: 'default', text: 'Option 1'},
+                    {id: 'btn2', type: 'destructive', text: 'Delete'},
+                    {type: 'cancel'}
+                ]
+            }, (buttonId) => {
+                if (buttonId) {
+                    tg.showAlert(`You clicked: ${buttonId}`);
+                }
+            });
+        }
+
+        function requestContact() {
+            tg.requestContact((success) => {
+                tg.showAlert(success ? 'Contact shared!' : 'Contact not shared');
+            });
+        }
+
+        function openLink() {
+            tg.openLink('https://telegram.org');
+        }
+
+        function openTelegramLink() {
+            tg.openTelegramLink('https://t.me/durov');
+        }
+
+        function shareToStory() {
+            tg.shareToStory('https://telegram.org/img/t_logo.png');
+        }
+
+        function showBackButton() {
+            tg.BackButton.show();
+        }
+
+        function hideBackButton() {
+            tg.BackButton.hide();
+        }
+
+        function toggleClosingConfirmation() {
+            tg.enableClosingConfirmation();
+            tg.showAlert('Closing confirmation enabled! Try closing the app.');
+            setTimeout(() => {
+                tg.disableClosingConfirmation();
+            }, 5000);
+        }
+
+        // Initialize
+        checkTelegram();
+    </script>
 </body>
 </html>
