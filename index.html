@@ -1,88 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Telegram Mini App Test</title>
+<meta charset="UTF-8" />
+<title>Telegram Mini App API Tester</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 <style>
-  body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
-  h1 { color: #0088cc; }
-  button { margin: 5px 0; padding: 10px 20px; font-size: 16px; cursor: pointer; }
-  #output { margin-top: 20px; background: #fff; padding: 10px; border-radius: 8px; max-height: 300px; overflow-y: auto; }
-  .log { margin-bottom: 5px; padding: 5px; border-bottom: 1px solid #ddd; }
+    body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #0f1220;
+        color: #eaeaf0;
+        margin: 0;
+        padding: 16px;
+    }
+    h1, h2 {
+        margin-top: 24px;
+    }
+    .box {
+        background: #1b1f3a;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    button {
+        background: #5b5fff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin: 4px 0;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    button.secondary {
+        background: #3a3f6b;
+    }
+    button.danger {
+        background: #ff4d4f;
+    }
+    pre {
+        background: #0b0e1a;
+        padding: 12px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-size: 13px;
+    }
+    .status-ok { color: #3cff88; }
+    .status-bad { color: #ff6b6b; }
 </style>
 </head>
+
 <body>
 
-<h1>Telegram Mini App Test</h1>
+<h1>Telegram Mini App API Tester</h1>
 
-<button id="checkTg">Check if Telegram</button>
-<button id="getUser">Get User Info</button>
-<button id="openInvoice">Open Invoice</button>
-<button id="sendData">Send Data to Bot</button>
-<button id="closeApp">Close App</button>
+<div class="box">
+    <h2>Environment Detection</h2>
+    <div id="env"></div>
+</div>
 
-<div id="output"></div>
+<div class="box">
+    <h2>Init Data</h2>
+    <pre id="initData"></pre>
+</div>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<div class="box">
+    <h2>Theme & Appearance</h2>
+    <button onclick="showTheme()">Show Theme Params</button>
+    <button onclick="toggleBg()">Toggle Background Color</button>
+    <pre id="themeOut"></pre>
+</div>
+
+<div class="box">
+    <h2>Main Button</h2>
+    <button onclick="showMainBtn()">Show</button>
+    <button onclick="hideMainBtn()">Hide</button>
+    <button onclick="setMainBtn()">Set Text & Color</button>
+</div>
+
+<div class="box">
+    <h2>Back Button</h2>
+    <button onclick="showBack()">Show</button>
+    <button onclick="hideBack()">Hide</button>
+</div>
+
+<div class="box">
+    <h2>Popups & Alerts</h2>
+    <button onclick="showAlert()">Alert</button>
+    <button onclick="showConfirm()">Confirm</button>
+    <button onclick="showPopup()">Popup</button>
+</div>
+
+<div class="box">
+    <h2>Haptics</h2>
+    <button onclick="impact()">Impact</button>
+    <button onclick="notification()">Notification</button>
+    <button onclick="selection()">Selection</button>
+</div>
+
+<div class="box">
+    <h2>Links & Navigation</h2>
+    <button onclick="openLink()">Open External Link</button>
+    <button onclick="openTelegramLink()">Open Telegram Link</button>
+</div>
+
+<div class="box">
+    <h2>Viewport & Expansion</h2>
+    <button onclick="expand()">Expand App</button>
+    <button onclick="logViewport()">Log Viewport</button>
+    <pre id="viewportOut"></pre>
+</div>
+
+<div class="box">
+    <h2>Closing</h2>
+    <button class="danger" onclick="closeApp()">Close Mini App</button>
+</div>
+
 <script>
-const tg = window.Telegram.WebApp;
-const output = document.getElementById('output');
+const tg = window.Telegram?.WebApp;
 
-function log(msg, data) {
-    const div = document.createElement('div');
-    div.className = 'log';
-    div.textContent = msg + (data ? ': ' + JSON.stringify(data) : '');
-    output.appendChild(div);
-    output.scrollTop = output.scrollHeight;
+function el(id){ return document.getElementById(id); }
+
+function detectEnv() {
+    if (!tg) {
+        el("env").innerHTML =
+            '<span class="status-bad">Not running inside Telegram Mini App</span>';
+        return;
+    }
+
+    el("env").innerHTML = `
+        <div class="status-ok">Telegram Mini App detected</div>
+        <div>Platform: ${tg.platform}</div>
+        <div>Version: ${tg.version}</div>
+        <div>Color Scheme: ${tg.colorScheme}</div>
+        <div>Expanded: ${tg.isExpanded}</div>
+    `;
 }
 
-// Check if running inside Telegram
-document.getElementById('checkTg').onclick = () => {
-    log('Is Telegram', !!tg);
-};
+function showInitData() {
+    if (!tg) return;
+    el("initData").textContent = JSON.stringify({
+        initData: tg.initData,
+        initDataUnsafe: tg.initDataUnsafe
+    }, null, 2);
+}
 
-// Get user info
-document.getElementById('getUser').onclick = () => {
-    if(tg) log('User Info', tg.initDataUnsafe.user);
-    else log('Not in Telegram');
-};
+function showTheme() {
+    if (!tg) return;
+    el("themeOut").textContent =
+        JSON.stringify(tg.themeParams, null, 2);
+}
 
-// Open a test invoice
-document.getElementById('openInvoice').onclick = () => {
-    if(tg) {
-        tg.openInvoice({
-            title: 'Test Payment',
-            description: 'Just testing Telegram Mini App invoice',
-            payload: 'test_payload',
-            currency: 'USD',
-            prices: [{label: 'Test Item', amount: 100}],
-            needName: true,
-            needPhoneNumber: false,
-            needEmail: false,
-            onClosed: () => log('Invoice closed')
-        });
-    } else log('Not in Telegram');
-};
+let bgToggle = false;
+function toggleBg() {
+    if (!tg) return;
+    bgToggle = !bgToggle;
+    tg.setBackgroundColor(bgToggle ? "#000000" : "#ffffff");
+}
 
-// Send data to bot
-document.getElementById('sendData').onclick = () => {
-    if(tg) {
-        tg.sendData('Hello from Mini App!');
-        log('Data sent to bot');
-    } else log('Not in Telegram');
-};
+function showMainBtn() {
+    if (!tg) return;
+    tg.MainButton.show();
+}
 
-// Close the app
-document.getElementById('closeApp').onclick = () => {
-    if(tg) tg.close();
-    else log('Not in Telegram');
-};
+function hideMainBtn() {
+    if (!tg) return;
+    tg.MainButton.hide();
+}
 
-// On app ready
-if(tg) {
+function setMainBtn() {
+    if (!tg) return;
+    tg.MainButton.setParams({
+        text: "MAIN ACTION",
+        color: "#5b5fff",
+        text_color: "#ffffff"
+    });
+    tg.MainButton.onClick(() => {
+        tg.showAlert("MainButton clicked");
+    });
+}
+
+function showBack() {
+    if (!tg) return;
+    tg.BackButton.show();
+    tg.BackButton.onClick(() => {
+        tg.showAlert("BackButton pressed");
+    });
+}
+
+function hideBack() {
+    if (!tg) return;
+    tg.BackButton.hide();
+}
+
+function showAlert() {
+    tg?.showAlert("This is a Telegram alert");
+}
+
+function showConfirm() {
+    tg?.showConfirm("Confirm action?", (ok) => {
+        tg.showAlert("Result: " + ok);
+    });
+}
+
+function showPopup() {
+    tg?.showPopup({
+        title: "Popup title",
+        message: "Popup message",
+        buttons: [
+            {id: "ok", type: "ok", text: "OK"},
+            {id: "cancel", type: "cancel"}
+        ]
+    }, (id) => {
+        tg.showAlert("Pressed: " + id);
+    });
+}
+
+function impact() {
+    tg?.HapticFeedback.impactOccurred("medium");
+}
+
+function notification() {
+    tg?.HapticFeedback.notificationOccurred("success");
+}
+
+function selection() {
+    tg?.HapticFeedback.selectionChanged();
+}
+
+function openLink() {
+    tg?.openLink("https://telegram.org");
+}
+
+function openTelegramLink() {
+    tg?.openTelegramLink("https://t.me/telegram");
+}
+
+function expand() {
+    tg?.expand();
+}
+
+function logViewport() {
+    if (!tg) return;
+    el("viewportOut").textContent = JSON.stringify({
+        viewportHeight: tg.viewportHeight,
+        viewportStableHeight: tg.viewportStableHeight,
+        isExpanded: tg.isExpanded
+    }, null, 2);
+}
+
+function closeApp() {
+    tg?.close();
+}
+
+/* INIT */
+detectEnv();
+showInitData();
+
+if (tg) {
     tg.ready();
-    log('Telegram Mini App ready');
 }
 </script>
 
