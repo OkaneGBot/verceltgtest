@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telegram Mini App Test</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
+  h1 { color: #0088cc; }
+  button { margin: 5px 0; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  #output { margin-top: 20px; background: #fff; padding: 10px; border-radius: 8px; max-height: 300px; overflow-y: auto; }
+  .log { margin-bottom: 5px; padding: 5px; border-bottom: 1px solid #ddd; }
+</style>
+</head>
+<body>
+
+<h1>Telegram Mini App Test</h1>
+
+<button id="checkTg">Check if Telegram</button>
+<button id="getUser">Get User Info</button>
+<button id="openInvoice">Open Invoice</button>
+<button id="sendData">Send Data to Bot</button>
+<button id="closeApp">Close App</button>
+
+<div id="output"></div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+const tg = window.Telegram.WebApp;
+const output = document.getElementById('output');
+
+function log(msg, data) {
+    const div = document.createElement('div');
+    div.className = 'log';
+    div.textContent = msg + (data ? ': ' + JSON.stringify(data) : '');
+    output.appendChild(div);
+    output.scrollTop = output.scrollHeight;
+}
+
+// Check if running inside Telegram
+document.getElementById('checkTg').onclick = () => {
+    log('Is Telegram', !!tg);
+};
+
+// Get user info
+document.getElementById('getUser').onclick = () => {
+    if(tg) log('User Info', tg.initDataUnsafe.user);
+    else log('Not in Telegram');
+};
+
+// Open a test invoice
+document.getElementById('openInvoice').onclick = () => {
+    if(tg) {
+        tg.openInvoice({
+            title: 'Test Payment',
+            description: 'Just testing Telegram Mini App invoice',
+            payload: 'test_payload',
+            currency: 'USD',
+            prices: [{label: 'Test Item', amount: 100}],
+            needName: true,
+            needPhoneNumber: false,
+            needEmail: false,
+            onClosed: () => log('Invoice closed')
+        });
+    } else log('Not in Telegram');
+};
+
+// Send data to bot
+document.getElementById('sendData').onclick = () => {
+    if(tg) {
+        tg.sendData('Hello from Mini App!');
+        log('Data sent to bot');
+    } else log('Not in Telegram');
+};
+
+// Close the app
+document.getElementById('closeApp').onclick = () => {
+    if(tg) tg.close();
+    else log('Not in Telegram');
+};
+
+// On app ready
+if(tg) {
+    tg.ready();
+    log('Telegram Mini App ready');
+}
+</script>
+
+</body>
+</html>
