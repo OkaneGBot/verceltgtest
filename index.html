@@ -15,7 +15,7 @@
     background: #f4f4f4;
   }
   input {
-    width: 80%;
+    width: 90%;
     padding: 10px;
     font-size: 1rem;
     margin-bottom: 10px;
@@ -30,20 +30,25 @@
 <body>
 
 <h2>TgInitData Viewer</h2>
-<input type="text" id="tgInitData" placeholder="Your TgInitData will appear here">
+<input type="text" id="tgInitData" placeholder="Waiting for Telegram...">
 <button onclick="copyData()">Copy</button>
 
+<!-- Telegram Web App JS SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-  // Example: set your TgInitData here
-  const TgInitData = "YOUR_TG_INIT_DATA_HERE";
+  // Wait until the Telegram Web App is ready
+  Telegram.WebApp.ready();
 
-  // Display it in input
-  document.getElementById('tgInitData').value = TgInitData;
+  // Get the init data
+  const initData = Telegram.WebApp.initData || "";
+
+  // Display it
+  const input = document.getElementById('tgInitData');
+  input.value = initData;
 
   function copyData() {
-    const input = document.getElementById('tgInitData');
     input.select();
-    input.setSelectionRange(0, 99999); // For mobile devices
+    input.setSelectionRange(0, 99999); // for mobile
     navigator.clipboard.writeText(input.value)
       .then(() => alert("Copied!"))
       .catch(err => alert("Failed to copy: " + err));
